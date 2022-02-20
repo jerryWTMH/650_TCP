@@ -8,6 +8,7 @@
 
 struct Potato{
     int hops;
+    int counter;
     int record[512];
    
 };
