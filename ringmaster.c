@@ -47,14 +47,12 @@ void game_setting(int sockfd, int num_players, const char * port_num, int *whole
         socklen_t addr_size;
         addr_size = sizeof(their_addr);
         int new_fd;
-        printf("Prepare to accept!\n");
         if((new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &addr_size)) == -1){
             fprintf(stderr, "accept error: %s\n", gai_strerror(new_fd));
         }
-        printf("Prepare to send!\n");
 
         int player_port;
-        char ip_recv[100];
+        char ip_recv[200];
         int num_bytes = send(new_fd, &i, sizeof(i), 0); // Let the player know its id
         if(num_bytes != sizeof(i)){
             fprintf(stderr, "send error, the number_bytes is not match: %s\n", gai_strerror(num_bytes));
@@ -75,6 +73,8 @@ void game_setting(int sockfd, int num_players, const char * port_num, int *whole
         // THE SECOND RECV for IP
         int amount; // collect the hostname(or ip address) from player
         amount = recv(new_fd, &ip_recv, sizeof(ip_recv), MSG_PEEK);
+        printf("amount: %d\n", amount);
+        printf("ip_recv : %s\n", ip_recv);
         if(amount > 200){
             fprintf(stderr, "The Length of IP is longer than 200, please adjust the ip length! \n");
         }

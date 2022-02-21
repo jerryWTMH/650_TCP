@@ -93,12 +93,19 @@ int main(int argc, char * argv[]){
     // Send sockfd, port to ringmaster
     int my_sockfd = build_ringmaster_socket("");
     int my_port = get_port_num(my_sockfd);
-    if((send(master_fd, &my_port, sizeof(my_port), 0)) == -1){
+    int num_bytes;
+    if((num_bytes = send(master_fd, &my_port, sizeof(my_port), 0)) == -1){
         fprintf(stderr, "Send port has some error!\n");
     }
-    if((send(master_fd, player_host_name, sizeof(player_host_name), 0)) == -1){ //////
-        fprintf(stderr, "Send host_name has some error!\n");
+    int sent = 0;
+    while(sent < (sizeof(player_host_name)/ sizeof(char))){
+        if((num_bytes = send(master_fd, player_host_name[sent], sizeof(player_host_name) - sent, 0)) == -1){ //////
+            fprintf(stderr, "Send host_name has some error!\n");
+        }
+        sent += num_bytes;
     }
+    
+    printf("num_bytes: %d\n", num_bytes);
 
     // Receive neighbor_port, neighbor_ip from ringmaster 
     int neighbor_port;
@@ -112,7 +119,7 @@ int main(int argc, char * argv[]){
 
     char format_neighbor_port[200];
     sprintf(format_neighbor_port, "%d", neighbor_port);
-    printf("sprintf: %s\n", neighbor_ip);
+    printf("neighbor_ip: %s\n", neighbor_ip);
     int right_neighbor_fd = build_client(neighbor_ip, format_neighbor_port);
 
     //player work as server, accept neighbor's connection
