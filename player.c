@@ -87,6 +87,7 @@ int main(int argc, char * argv[]){
     int my_id;
     int num_players;
     recv(master_fd, &my_id, sizeof(my_id), 0);
+    // printf("my_id: %d\n", my_id);
     recv(master_fd, &num_players, sizeof(num_players), 0);
     printf("Connected as player %d out of %d total players\n", my_id, num_players);
     
@@ -97,15 +98,17 @@ int main(int argc, char * argv[]){
     if((num_bytes = send(master_fd, &my_port, sizeof(my_port), 0)) == -1){
         fprintf(stderr, "Send port has some error!\n");
     }
-    int sent = 0;
-    while(sent < (sizeof(player_host_name)/ sizeof(char))){
-        if((num_bytes = send(master_fd, player_host_name[sent], sizeof(player_host_name) - sent, 0)) == -1){ //////
+    // int sent = 0;
+    // while(sent < (sizeof(player_host_name)/ sizeof(char))){
+    //     if((num_bytes = send(master_fd, player_host_name[sent], sizeof(player_host_name) - sent, 0)) == -1){ //////
+    //         fprintf(stderr, "Send host_name has some error!\n");
+    //     }
+    //     sent += num_bytes;
+    // }
+
+    if((num_bytes = send(master_fd, player_host_name, strlen(player_host_name), 0)) == -1){ //////
             fprintf(stderr, "Send host_name has some error!\n");
-        }
-        sent += num_bytes;
     }
-    
-    printf("num_bytes: %d\n", num_bytes);
 
     // Receive neighbor_port, neighbor_ip from ringmaster 
     int neighbor_port;
@@ -138,27 +141,30 @@ int main(int argc, char * argv[]){
     if(master_fd > nfds){
         nfds = master_fd;
     }
-    FD_ZERO(&readfds);
-    FD_SET(master_fd, &readfds);
-    FD_SET(left_neighbor_fd, &readfds);
-    FD_SET(right_neighbor_fd, &readfds);
-    select(nfds, &readfds, NULL, NULL, NULL);
     while(1){
+        FD_ZERO(&readfds);
+        FD_SET(master_fd, &readfds);
+        FD_SET(left_neighbor_fd, &readfds);
+        FD_SET(right_neighbor_fd, &readfds);
+        select(nfds + 1, &readfds, NULL, NULL, NULL);
         while(1){
             if(FD_ISSET(master_fd, &readfds)){
                 recv(master_fd, &potato, sizeof(potato), MSG_WAITALL);
+                // printf("from master: %d, %d\n", potato.hops, potato.counter);
                 break;
             }
             if(FD_ISSET(left_neighbor_fd, &readfds)){
                 recv(left_neighbor_fd, &potato, sizeof(potato), MSG_WAITALL);
+                // printf("from left_neighbor: %d, %d\n", potato.hops, potato.counter);
                 break;
             }
             if(FD_ISSET(right_neighbor_fd, &readfds)){
                 recv(right_neighbor_fd, &potato, sizeof(potato), MSG_WAITALL);
+                // printf("from right_neighbor: %d, %d\n", potato.hops, potato.counter);
                 break;
             }
         }
-        int current_hops = potato.counter;
+        int current_hops = potato.hops;
         if(current_hops == 0){
             // ringmaster shut down
             break;
@@ -168,18 +174,19 @@ int main(int argc, char * argv[]){
             potato.counter = potato.counter + 1;
             printf("I'm it\n");
             send(master_fd, &potato, sizeof(potato), 0);
-            break;
         } else{
             potato.hops = potato.hops - 1;
+            printf("potato.hops: %d\n", potato.hops);
+            printf("potato.counter: %d\n", potato.counter);
             potato.record[potato.counter] = my_id;
             potato.counter = potato.counter + 1;
             srand((unsigned int)time(NULL) + 2);
             int rand_num = rand() % 2;
             int rand_player_fd = rand_num == 1 ? right_neighbor_fd : left_neighbor_fd;
             if(rand_num == 1){
-                printf("Sending potato to %d\n", my_id + 1);
+                printf("Sending potato to %d\n", (my_id + num_players + 1) % num_players);
             } else{
-                printf("Sending potato to %d\n", my_id - 1);
+                printf("Sending potato to %d\n", (my_id + num_players - 1) % num_players);
             }
             send(rand_player_fd, &potato, sizeof(potato), 0);
         }

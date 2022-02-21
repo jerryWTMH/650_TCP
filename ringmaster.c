@@ -64,6 +64,7 @@ void game_setting(int sockfd, int num_players, const char * port_num, int *whole
 
         // THE FIRST RECV for PORT
         recv(new_fd, &player_port, sizeof(player_port), 0);
+        // printf("player_port: %d", player_port);
          if(player_port < 0){
             fprintf(stderr, "player_port received from client is not correct: %s\n", gai_strerror(player_port));
         } else if (player_port == 0){
@@ -74,7 +75,10 @@ void game_setting(int sockfd, int num_players, const char * port_num, int *whole
         int amount; // collect the hostname(or ip address) from player
         amount = recv(new_fd, &ip_recv, sizeof(ip_recv), MSG_PEEK);
         printf("amount: %d\n", amount);
-        printf("ip_recv : %s\n", ip_recv);
+        ip_recv[amount] = '\0'; 
+        // for(int i = 0 ; i < 200 ;i ++){
+        //     printf("%c",ip_recv[i]); 
+        // }
         if(amount > 200){
             fprintf(stderr, "The Length of IP is longer than 200, please adjust the ip length! \n");
         }
@@ -114,6 +118,7 @@ void send_to_first_player(Potato * potato, int num_players, int * whole_players_
     int random_player = rand() % num_players;
     
     printf("Ready to start the game, sending potato to player %d\n", random_player);
+    printf("potato.counter: %d, potato.hops: %d\n", potato->counter, potato->hops);
     send(whole_players_fd[random_player], potato, sizeof(*potato), 0);
 }
 
