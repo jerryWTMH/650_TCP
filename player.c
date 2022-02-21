@@ -172,15 +172,20 @@ int main(int argc, char * argv[]){
             potato.hops = potato.hops - 1;
             potato.record[potato.counter] = my_id;
             potato.counter = potato.counter + 1;
+            for(int i = 0 ; i < potato.counter; i++){
+                printf("potato.record[%d]: %d\n", i, potato.record[i]);
+            }
             printf("I'm it\n");
+            // printf("potato.hops: %d\n", potato.hops);
+            // printf("potato.counter: %d\n", potato.counter);
             send(master_fd, &potato, sizeof(potato), 0);
         } else{
             potato.hops = potato.hops - 1;
-            printf("potato.hops: %d\n", potato.hops);
-            printf("potato.counter: %d\n", potato.counter);
+            // printf("potato.hops: %d\n", potato.hops);
+            // printf("potato.counter: %d\n", potato.counter);
             potato.record[potato.counter] = my_id;
             potato.counter = potato.counter + 1;
-            srand((unsigned int)time(NULL) + 2);
+            srand((unsigned int)time(NULL) + my_id);
             int rand_num = rand() % 2;
             int rand_player_fd = rand_num == 1 ? right_neighbor_fd : left_neighbor_fd;
             if(rand_num == 1){

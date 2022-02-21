@@ -28,7 +28,8 @@ int build_ringmaster_socket(const char* port_num){
     if(sockfd == -1){
         fprintf(stderr, "socket error: %s\n", gai_strerror(sockfd));
     }
-
+    int yes = 1;
+    status = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
     if((status = bind(sockfd, res->ai_addr, res->ai_addrlen)) == -1){
         fprintf(stderr, "bind error: %s\n", gai_strerror(status));
     }
@@ -74,7 +75,7 @@ void game_setting(int sockfd, int num_players, const char * port_num, int *whole
         // THE SECOND RECV for IP
         int amount; // collect the hostname(or ip address) from player
         amount = recv(new_fd, &ip_recv, sizeof(ip_recv), MSG_PEEK);
-        printf("amount: %d\n", amount);
+        // printf("amount: %d\n", amount);
         ip_recv[amount] = '\0'; 
         // for(int i = 0 ; i < 200 ;i ++){
         //     printf("%c",ip_recv[i]); 
@@ -85,7 +86,7 @@ void game_setting(int sockfd, int num_players, const char * port_num, int *whole
         char ip[amount + 1];
         strncpy(ip, &ip_recv[0], amount);
         ip[amount] = '\0';
-        printf("The IP got from the client: %s \n", ip);
+        // printf("The IP got from the client: %s \n", ip);
        
         whole_players_fd = (int *)realloc(whole_players_fd, (i + 1) * sizeof(*whole_players_fd));
         whole_players_port = (int *)realloc(whole_players_port, (i + 1) * sizeof(*whole_players_port));
@@ -123,9 +124,10 @@ void send_to_first_player(Potato * potato, int num_players, int * whole_players_
 }
 
 void recv_potato_from_last(Potato * potato, int num_players, int * whole_players_fd){
+    printf("original potato, potato.counter: %d, potato.hops: %d\n", potato->counter, potato->hops);
     fd_set readfds;
     int nfds = 0; // max fd + 1
-    for(int i = 0; i < (sizeof(whole_players_fd) / sizeof(whole_players_fd[0])); i++){
+    for(int i = 0; i < num_players; i++){
         if(whole_players_fd[i] > nfds){
             nfds = whole_players_fd[i];
         }
@@ -136,10 +138,12 @@ void recv_potato_from_last(Potato * potato, int num_players, int * whole_players
         // Add fd to the set.
         FD_SET(whole_players_fd[i], &readfds);
     }
+    memset(potato, 0 , sizeof(*potato));
     select(nfds, &readfds, NULL, NULL, NULL);
     for (int i = 0; i < num_players; i++) {
         if (FD_ISSET(whole_players_fd[i], &readfds)) {
             recv(whole_players_fd[i], potato, sizeof(*potato), MSG_WAITALL);
+            printf("LAST! potato.counter: %d, potato.hops: %d", potato->counter, potato->hops);
             break;
         }
     }
@@ -187,7 +191,9 @@ int main(int argc, char * argv[]){
         recv_potato_from_last(&potato, num_players, whole_players_fd);   
         // send potato with num_hops 0 to all players to shut down
         for (int i = 0; i < num_players; i++) {
-            send(whole_players_fd[i], &potato, sizeof(potato), 0);
+            Potato potato_zero;
+            potato_zero.hops = 0;
+            send(whole_players_fd[i], &potato_zero, sizeof(potato_zero), 0);
         }
         // print the trace 
         print_trace_of_potato(potato);       
