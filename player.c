@@ -89,7 +89,7 @@ int main(int argc, char * argv[]){
     recv(master_fd, &my_id, sizeof(my_id), MSG_WAITALL);
     // printf("my_id: %d\n", my_id);
     recv(master_fd, &num_players, sizeof(num_players), MSG_WAITALL);
-    printf("Connected as player %d out of %d total players\n", my_id, num_players);
+    printf("Connected as player %d out of %d total players\n", my_id + 1, num_players);
     
     // Send sockfd, port to ringmaster
     int my_sockfd = build_server("");
@@ -101,26 +101,28 @@ int main(int argc, char * argv[]){
     }
     ////////////////////// char hostname[HOST_NAME_MAX + 1];
     //////////////////////// gethostname(hostname, HOST_NAME_MAX +1);
-    char copy[200]={'\0'};
-    strcpy(copy, master_host_name);
-    if((num_bytes = send(master_fd, copy, sizeof(copy), 0)) == -1){ //////
+    char hostname[200]={'\0'};
+    gethostname(hostname, 200);
+    // char copy[200]={'\0'};
+    // strcpy(copy, master_host_name);
+    if((num_bytes = send(master_fd, hostname, sizeof(hostname), 0)) == -1){ //////
             fprintf(stderr, "Send host_name has some error!\n");
     }
 
-    // Receive neighbor_port, neighbor_ip from ringmaster 
+    // Receive neighbor_port, neighbor_hostname from ringmaster 
     int neighbor_port;
-    char neighbor_ip[200];
+    char neighbor_hostname[200];
     recv(master_fd, &neighbor_port, sizeof(neighbor_port), 0);
-    recv(master_fd, &neighbor_ip, sizeof(neighbor_ip), 0);
+    recv(master_fd, &neighbor_hostname, sizeof(neighbor_hostname), 0);
     // printf("neighbor_port: %d\n", neighbor_port);
-    // printf("neighbor_ip: %s\n", neighbor_ip);
+     printf("neighbor_hostname: %s\n", neighbor_hostname);
     // Connect with neighbors, and try to be the server and the client
     // server:
     //player work as client, connect to its neighbor's server
     
     char format_neighbor_port[200];
     sprintf(format_neighbor_port, "%d", neighbor_port);
-    int right_neighbor_fd = build_client(neighbor_ip, format_neighbor_port);
+    int right_neighbor_fd = build_client(neighbor_hostname, format_neighbor_port);
     
     //player work as server, accept neighbor's connection
     struct sockaddr_storage their_addr;
@@ -173,9 +175,9 @@ int main(int argc, char * argv[]){
             potato.hops = potato.hops - 1;
             potato.record[potato.counter] = my_id;
             potato.counter = potato.counter + 1;
-            for(int i = 0 ; i < potato.counter; i++){
-                printf("potato.record[%d]: %d\n", i, potato.record[i]);
-            }
+            // for(int i = 0 ; i < potato.counter; i++){
+            //     printf("potato.record[%d]: %d\n", i, potato.record[i]);
+            // }
             printf("I'm it\n");
             // printf("potato.hops: %d\n", potato.hops);
             // printf("potato.counter: %d\n", potato.counter);
