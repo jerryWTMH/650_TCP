@@ -93,19 +93,12 @@ int main(int argc, char * argv[]){
     
     // Send sockfd, port to ringmaster
     int my_sockfd = build_server("");
-    printf("my_sockfd: %d\n", my_sockfd);
+    // printf("my_sockfd: %d\n", my_sockfd);
     int my_port = get_port_num(my_sockfd);
     int num_bytes;
     if((num_bytes = send(master_fd, &my_port, sizeof(my_port), 0)) == -1){
         fprintf(stderr, "Send port has some error!\n");
     }
-    // int sent = 0;
-    // while(sent < (sizeof(master_host_name)/ sizeof(char))){
-    //     if((num_bytes = send(master_fd, master_host_name[sent], sizeof(master_host_name) - sent, 0)) == -1){ //////
-    //         fprintf(stderr, "Send host_name has some error!\n");
-    //     }
-    //     sent += num_bytes;
-    // }
     ////////////////////// char hostname[HOST_NAME_MAX + 1];
     //////////////////////// gethostname(hostname, HOST_NAME_MAX +1);
     char copy[200]={'\0'};
@@ -119,8 +112,8 @@ int main(int argc, char * argv[]){
     char neighbor_ip[200];
     recv(master_fd, &neighbor_port, sizeof(neighbor_port), 0);
     recv(master_fd, &neighbor_ip, sizeof(neighbor_ip), 0);
-    printf("neighbor_port: %d\n", neighbor_port);
-    printf("neighbor_ip: %s\n", neighbor_ip);
+    // printf("neighbor_port: %d\n", neighbor_port);
+    // printf("neighbor_ip: %s\n", neighbor_ip);
     // Connect with neighbors, and try to be the server and the client
     // server:
     //player work as client, connect to its neighbor's server
@@ -145,9 +138,6 @@ int main(int argc, char * argv[]){
     if(master_fd > nfds){
         nfds = master_fd;
     }
-    printf("nfds: %d\n", nfds + 1);
-    printf("right: %d\n", right_neighbor_fd);
-    printf("left: %d\n", left_neighbor_fd);
     srand((unsigned int)time(NULL) + my_id);
     while(1){
         FD_ZERO(&readfds);
@@ -159,19 +149,19 @@ int main(int argc, char * argv[]){
             if(FD_ISSET(master_fd, &readfds)){
                 recv(master_fd, &potato, sizeof(potato), MSG_WAITALL);
                 //printf("from master: %d, %d\n", potato.hops, potato.counter);
-                printf("from master\n");
+                // printf("from master\n");
                 break;
             }
             if(FD_ISSET(left_neighbor_fd, &readfds)){
                 recv(left_neighbor_fd, &potato, sizeof(potato), MSG_WAITALL);
                 // printf("from left_neighbor: %d, %d\n", potato.hops, potato.counter);
-                printf("from left_neighbor\n");
+                // printf("from left_neighbor\n");
                 break;
             }
             if(FD_ISSET(right_neighbor_fd, &readfds)){
                 recv(right_neighbor_fd, &potato, sizeof(potato), MSG_WAITALL);
                 // printf("from right_neighbor: %d, %d\n", potato.hops, potato.counter);
-                printf("from right_neighbor\n");
+                // printf("from right_neighbor\n");
                 break;
             }
         }
@@ -189,11 +179,11 @@ int main(int argc, char * argv[]){
             printf("I'm it\n");
             // printf("potato.hops: %d\n", potato.hops);
             // printf("potato.counter: %d\n", potato.counter);
-            int temp = 1000;
             // send(master_fd, &temp, sizeof(temp), 0);
             int num_bytes = send(master_fd, &potato, sizeof(potato), 0);
-            printf("num_bytes: %d\n", num_bytes);
+            // printf("num_bytes: %d\n", num_bytes);
         } else{
+
             potato.hops = potato.hops - 1;
             // printf("potato.hops: %d\n", potato.hops);
             // printf("potato.counter: %d\n", potato.counter);
@@ -202,14 +192,19 @@ int main(int argc, char * argv[]){
             int rand_num = rand() % 2;
             int rand_player_fd = rand_num == 1 ? right_neighbor_fd : left_neighbor_fd;
             if(rand_num == 1){
-                printf("Sending potato to %d\n", (my_id + num_players + 1) % num_players);
-            } else{
+                // printf("my_id : %d\n", my_id);
+                // printf("Sending potato to left\n");
                 printf("Sending potato to %d\n", (my_id + num_players - 1) % num_players);
+            } else{
+                // printf("my_id : %d\n", my_id);
+                // printf("Sending potato to right\n");
+                printf("Sending potato to %d\n", (my_id + num_players + 1) % num_players);
+                
             }
             int num_bytes = send(rand_player_fd, &potato, sizeof(potato), 0);
-            printf("num_bytes: %d\n", num_bytes);
-            printf("rand_player_fd: %d\n", rand_player_fd);
-            printf("master_fd %d\n", master_fd);
+            // printf("num_bytes: %d\n", num_bytes);
+            // printf("rand_player_fd: %d\n", rand_player_fd);
+            // printf("master_fd %d\n", master_fd);
         }
     }
     close(left_neighbor_fd);

@@ -75,7 +75,7 @@ void game_setting(int sockfd, int num_players, const char * port_num, int *whole
         // THE SECOND RECV for IP
         int amount; // collect the hostname(or ip address) from player
         amount = recv(new_fd, ip_recv, 200, MSG_WAITALL);
-        printf("IP_recv: %s\n", ip_recv);
+        // printf("IP_recv: %s\n", ip_recv);
         // printf("amount: %d\n", amount);
         /////////// ip_recv[amount] = '\0'; 
         // for(int i = 0 ; i < 200 ;i ++){
@@ -94,11 +94,11 @@ void game_setting(int sockfd, int num_players, const char * port_num, int *whole
         whole_players_port = (int *)realloc(whole_players_port, (i + 1) * sizeof(*whole_players_port));
         whole_players_ip = (char **)realloc(whole_players_ip, (i + 1) * sizeof(*whole_players_ip));
         whole_players_fd[i] = new_fd;
-        printf("###############whole_players_fd[%d] : %d\n", i, whole_players_fd[i]);
+        // printf("###############whole_players_fd[%d] : %d\n", i, whole_players_fd[i]);
         whole_players_port[i] = player_port;
-        printf("###############whole_players_port[%d] : %d\n", i, whole_players_port[i]);
+        // printf("###############whole_players_port[%d] : %d\n", i, whole_players_port[i]);
         whole_players_ip[i] = ip_recv;
-        printf("###############whole_players_ip[%d] : %s\n", i, whole_players_ip[i]);
+        // printf("###############whole_players_ip[%d] : %s\n", i, whole_players_ip[i]);
         printf("Player %d is ready to play\n", i);
     }
 }
@@ -112,8 +112,8 @@ void send_neighbor_info_to_players(int num_players, int * whole_players_fd, int 
         char neighbor_ip[200];
         memset(neighbor_ip, 0, sizeof(neighbor_ip));
         strcpy(neighbor_ip, whole_players_ip[neighbor_id]);
-        send(whole_players_fd[i], &neighbor_port, sizeof(neighbor_port), 0);
-        send(whole_players_fd[i], &neighbor_ip, sizeof(neighbor_ip), 0);
+        send(whole_players_fd[(i+1)% num_players], &neighbor_port, sizeof(neighbor_port), 0);
+        send(whole_players_fd[(i+1)%num_players], &neighbor_ip, sizeof(neighbor_ip), 0);
         i++;
         
     }
@@ -124,12 +124,12 @@ void send_to_first_player(Potato * potato, int num_players, int * whole_players_
     int random_player = rand() % num_players;
     
     printf("Ready to start the game, sending potato to player %d\n", random_player);
-    printf("potato.counter: %d, potato.hops: %d\n", potato->counter, potato->hops);
+    // printf("potato.counter: %d, potato.hops: %d\n", potato->counter, potato->hops);
     send(whole_players_fd[random_player], potato, sizeof(*potato), 0);
 }
 
 void recv_potato_from_last(Potato * potato, int num_players, int * whole_players_fd){
-    printf("original potato, potato.counter: %d, potato.hops: %d\n", potato->counter, potato->hops);
+    // printf("original potato, potato.counter: %d, potato.hops: %d\n", potato->counter, potato->hops);
     fd_set readfds;
     int nfds = 0; // max fd + 1
     for(int i = 0; i < num_players; i++){
@@ -138,21 +138,21 @@ void recv_potato_from_last(Potato * potato, int num_players, int * whole_players
         }
     }
     nfds += 1;
-    printf("nfds: %d\n", nfds);
+    // printf("nfds: %d\n", nfds);
     FD_ZERO(&readfds);
     for (int i = 0; i < num_players; i++) {
         // Add fd to the set.
         FD_SET(whole_players_fd[i], &readfds);
     }
     select(nfds, &readfds, NULL, NULL, NULL);
-    printf("AFTER SELECT!\n");
+    // printf("AFTER SELECT!\n");
     for (int i = 0; i < num_players; i++) {
-        printf("IN THE FOR LOOP[%d] \n",i);
+        // printf("IN THE FOR LOOP[%d] \n",i);
         if (FD_ISSET(whole_players_fd[i], &readfds)) {
-            printf("IN THE IF\n");
+            // printf("IN THE IF\n");
             int num_bytes = recv(whole_players_fd[i], potato, sizeof(*potato), 0);
-            printf("num_bytes: %d\n", num_bytes);
-            printf("LAST! potato.counter: %d, potato.hops: %d", potato->counter, potato->hops);
+            // printf("num_bytes: %d\n", num_bytes);
+            // printf("LAST! potato.counter: %d, potato.hops: %d", potato->counter, potato->hops);
             break;
         }
     }
