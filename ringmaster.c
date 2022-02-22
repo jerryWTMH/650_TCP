@@ -53,7 +53,7 @@ void game_setting(int sockfd, int num_players, const char * port_num, int *whole
         }
 
         int player_port;
-        char ip_recv[200];
+        char * ip_recv = (char * )malloc(200);
         int num_bytes = send(new_fd, &i, sizeof(i), 0); // Let the player know its id
         if(num_bytes != sizeof(i)){
             fprintf(stderr, "send error, the number_bytes is not match: %s\n", gai_strerror(num_bytes));
@@ -74,18 +74,20 @@ void game_setting(int sockfd, int num_players, const char * port_num, int *whole
 
         // THE SECOND RECV for IP
         int amount; // collect the hostname(or ip address) from player
-        amount = recv(new_fd, &ip_recv, sizeof(ip_recv), MSG_PEEK);
+        amount = recv(new_fd, ip_recv, 200, MSG_WAITALL);
+        printf("IP_recv: %s\n", ip_recv);
         // printf("amount: %d\n", amount);
-        ip_recv[amount] = '\0'; 
+        /////////// ip_recv[amount] = '\0'; 
         // for(int i = 0 ; i < 200 ;i ++){
         //     printf("%c",ip_recv[i]); 
         // }
-        if(amount > 200){
-            fprintf(stderr, "The Length of IP is longer than 200, please adjust the ip length! \n");
-        }
-        char ip[amount + 1];
-        strncpy(ip, &ip_recv[0], amount);
-        ip[amount] = '\0';
+        /////////// if(amount > 200){
+        //     fprintf(stderr, "The Length of IP is longer than 200, please adjust the ip length! \n");
+        // }
+
+        // char ip[amount + 1];
+        // strncpy(ip, &ip_recv[0], amount);
+        // ip[amount] = '\0';
         // printf("The IP got from the client: %s \n", ip);
        
         whole_players_fd = (int *)realloc(whole_players_fd, (i + 1) * sizeof(*whole_players_fd));
@@ -95,7 +97,7 @@ void game_setting(int sockfd, int num_players, const char * port_num, int *whole
         printf("###############whole_players_fd[%d] : %d\n", i, whole_players_fd[i]);
         whole_players_port[i] = player_port;
         printf("###############whole_players_port[%d] : %d\n", i, whole_players_port[i]);
-        whole_players_ip[i] = ip;
+        whole_players_ip[i] = ip_recv;
         printf("###############whole_players_ip[%d] : %s\n", i, whole_players_ip[i]);
         printf("Player %d is ready to play\n", i);
     }
@@ -148,7 +150,8 @@ void recv_potato_from_last(Potato * potato, int num_players, int * whole_players
         printf("IN THE FOR LOOP[%d] \n",i);
         if (FD_ISSET(whole_players_fd[i], &readfds)) {
             printf("IN THE IF\n");
-            recv(whole_players_fd[i], potato, sizeof(*potato), MSG_WAITALL);
+            int num_bytes = recv(whole_players_fd[i], potato, sizeof(*potato), 0);
+            printf("num_bytes: %d\n", num_bytes);
             printf("LAST! potato.counter: %d, potato.hops: %d", potato->counter, potato->hops);
             break;
         }
