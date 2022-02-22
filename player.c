@@ -46,7 +46,7 @@ int get_port_num(int socket_fd) {
   return ntohs(sa.sin_port);
 }
 
-int build_ringmaster_socket(const char* port_num){
+int build_server(const char* port_num){
     int status;
     struct addrinfo hints;
     struct addrinfo *res;
@@ -92,7 +92,7 @@ int main(int argc, char * argv[]){
     printf("Connected as player %d out of %d total players\n", my_id, num_players);
     
     // Send sockfd, port to ringmaster
-    int my_sockfd = build_ringmaster_socket("");
+    int my_sockfd = build_server("");
     int my_port = get_port_num(my_sockfd);
     int num_bytes;
     if((num_bytes = send(master_fd, &my_port, sizeof(my_port), 0)) == -1){
@@ -178,6 +178,8 @@ int main(int argc, char * argv[]){
             printf("I'm it\n");
             // printf("potato.hops: %d\n", potato.hops);
             // printf("potato.counter: %d\n", potato.counter);
+            int temp = 1000;
+            // send(master_fd, &temp, sizeof(temp), 0);
             send(master_fd, &potato, sizeof(potato), 0);
         } else{
             potato.hops = potato.hops - 1;

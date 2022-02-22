@@ -92,17 +92,20 @@ void game_setting(int sockfd, int num_players, const char * port_num, int *whole
         whole_players_port = (int *)realloc(whole_players_port, (i + 1) * sizeof(*whole_players_port));
         whole_players_ip = (char **)realloc(whole_players_ip, (i + 1) * sizeof(*whole_players_ip));
         whole_players_fd[i] = new_fd;
+        printf("###############whole_players_fd[%d] : %d\n", i, whole_players_fd[i]);
         whole_players_port[i] = player_port;
+        printf("###############whole_players_port[%d] : %d\n", i, whole_players_port[i]);
         whole_players_ip[i] = ip;
+        printf("###############whole_players_ip[%d] : %s\n", i, whole_players_ip[i]);
         printf("Player %d is ready to play\n", i);
     }
 }
 
 void send_neighbor_info_to_players(int num_players, int * whole_players_fd, int * whole_players_port, char ** whole_players_ip){
     int i = 0;
-    
     while(i < num_players){
-        int neighbor_id = (i + 1) % num_players;
+        int neighbor_id = (i) % num_players;
+        // int neighbor_id = (i) % num_players;
         int neighbor_port = whole_players_port[neighbor_id];
         char neighbor_ip[200];
         memset(neighbor_ip, 0, sizeof(neighbor_ip));
@@ -133,15 +136,18 @@ void recv_potato_from_last(Potato * potato, int num_players, int * whole_players
         }
     }
     nfds += 1;
+    printf("nfds: %d\n", nfds);
     FD_ZERO(&readfds);
     for (int i = 0; i < num_players; i++) {
         // Add fd to the set.
         FD_SET(whole_players_fd[i], &readfds);
     }
-    memset(potato, 0 , sizeof(*potato));
     select(nfds, &readfds, NULL, NULL, NULL);
+    printf("AFTER SELECT!\n");
     for (int i = 0; i < num_players; i++) {
+        printf("IN THE FOR LOOP[%d] \n",i);
         if (FD_ISSET(whole_players_fd[i], &readfds)) {
+            printf("IN THE IF\n");
             recv(whole_players_fd[i], potato, sizeof(*potato), MSG_WAITALL);
             printf("LAST! potato.counter: %d, potato.hops: %d", potato->counter, potato->hops);
             break;
@@ -178,6 +184,10 @@ int main(int argc, char * argv[]){
     char ** whole_players_ip = (char **)malloc(sizeof(char));
     game_setting(sockfd, num_players, port_num, whole_players_fd, whole_players_port, whole_players_ip);
     // send information to players to let them know their neighbors
+    // printf("%ld\n", sizeof(whole_players_port)/ sizeof(int));
+    // for(int i = 0 ; i < sizeof(whole_players_port)/ sizeof(int); i++){
+    //     printf("port %d: %d\n", i, whole_players_port[i]);
+    // }
     send_neighbor_info_to_players(num_players, whole_players_fd, whole_players_port, whole_players_ip);
     
     // start game now!
