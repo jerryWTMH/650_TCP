@@ -155,6 +155,9 @@ int main(int argc, char * argv[]){
     if(num_players < 1){
         fprintf(stderr, "number of players is less than 1\n");
     }
+    printf("Potato Ringmaster\n");
+    printf("Players = %d\n", num_players);
+    printf("Hops = %d\n", num_hops);
     // Building the server
     int sockfd = build_ringmaster_socket(port_num);
 

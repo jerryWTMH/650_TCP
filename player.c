@@ -82,7 +82,7 @@ int main(int argc, char * argv[]){
         fprintf(stderr, "Please provide the correct format of the input\n");
         return 0;
     }
-    printf("master_host_name from main: %s\n", master_host_name);
+    // printf("master_host_name from main: %s\n", master_host_name);
     int master_fd = build_client(master_host_name, player_port);
     int my_id;
     int num_players;
