@@ -112,7 +112,7 @@ int main(int argc, char * argv[]){
     char neighbor_hostname[200];
     recv(master_fd, &neighbor_port, sizeof(neighbor_port), 0);
     recv(master_fd, &neighbor_hostname, sizeof(neighbor_hostname), 0);
-    printf("neighbor_hostname: %s\n", neighbor_hostname);
+    // printf("neighbor_hostname: %s\n", neighbor_hostname);
     // Connect with neighbors, and try to be the server and the client
     // server:
     //player work as client, connect to its neighbor's server
