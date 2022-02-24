@@ -117,7 +117,7 @@ void send_to_first_player(Potato * potato, int num_players, int * whole_players_
     printf("Ready to start the game, sending potato to player %d\n", random_player);
     // printf("potato.counter: %d, potato.hops: %d\n", potato->counter, potato->hops);
     printf("%d\n", whole_players_fd[random_player]);
-    printf("sizeof potato: %ld\n", sizeof(*potato));
+    // printf("sizeof potato: %ld\n", sizeof(*potato));
     send(whole_players_fd[random_player], potato, sizeof(*potato), 0);
 }
 
@@ -162,8 +162,9 @@ int main(int argc, char * argv[]){
     const char * port_num = argv[1];
     int num_players = atoi(argv[2]);
     int num_hops = atoi(argv[3]);
-    if(num_players < 1){
-        fprintf(stderr, "number of players is less than 1\n");
+    if(num_players <= 1){
+        return 0;
+        // fprintf(stderr, "number of players is less than 1\n");
     }
     printf("Potato Ringmaster\n");
     printf("Players = %d\n", num_players);
