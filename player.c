@@ -89,7 +89,7 @@ int main(int argc, char * argv[]){
     recv(master_fd, &my_id, sizeof(my_id), MSG_WAITALL);
     // printf("my_id: %d\n", my_id);
     recv(master_fd, &num_players, sizeof(num_players), MSG_WAITALL);
-    printf("Connected as player %d out of %d total players\n", my_id + 1, num_players);
+    printf("Connected as player %d out of %d total players\n", my_id, num_players);
     
     // Send sockfd, port to ringmaster
     int my_sockfd = build_server("");
